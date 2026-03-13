@@ -82,7 +82,7 @@ Projet_paire_impaire/
 Clone the repository:
 
 ```bash
-git clone https://github.com/walidEHM/ai-pair-odd-game.git
+https://github.com/walidEHM/Pair-Odd-Game.git
 cd ai-pair-odd-game
 ```
 
