@@ -1,3 +1,5 @@
+
+
 import cv2
 import numpy as np
 import os
@@ -36,7 +38,8 @@ class UIManager:
     def draw_skeleton(self, score_ia, score_humain, probas, log,
                       game_value=0.0, expected_gain=0.0,
                       last_ia=None, last_hum=None, last_sum=None,
-                      rounds=0, winrate_ia=0.0, current_fingers=None):
+                      rounds=0, winrate_ia=0.0, current_fingers=None,
+                      regle_joueur=None, ia_strategy="Minimax"):
         """
         Affiche l'interface complète avec :
         - scores cumules (somme nulle)
@@ -45,6 +48,7 @@ class UIManager:
         - main detectee en direct
         - rappel theorique (strategie optimale et valeur du jeu)
         - message de log
+        - stratégie IA affichée sous le titre
         """
         frame = np.full((self.height, self.width, 3), self.bg_color, dtype=np.uint8)
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -64,15 +68,28 @@ class UIManager:
         cv2.putText(frame, "JOUEUR 1 (IA)",     (130, 45), font, 0.8, self.white, 2)
         cv2.putText(frame, "JOUEUR 2 (VOUS)",   (570, 45), font, 0.8, self.white, 2)
 
+        # --- Stratégie IA (sous le titre) ---
+        cv2.putText(frame, f"Strategie: {ia_strategy}", (130, 70), font, 0.5, self.cyan, 1)
+
         # --- Informations dynamiques ---
         start_y = 540
         line_height = 25
 
-        # Dernier coup
+        # Dernier coup (corrigé pour prendre en compte la règle)
         if last_ia is not None and last_hum is not None and last_sum is not None:
+            # Détermination du gagnant selon la règle
+            if regle_joueur is None:
+                # Comportement par défaut (joueur gagne sur pair)
+                gagnant = "VOUS" if last_sum % 2 == 0 else "IA"
+            else:
+                if regle_joueur:  # joueur gagne sur pair
+                    gagnant = "VOUS" if last_sum % 2 == 0 else "IA"
+                else:              # joueur gagne sur impair
+                    gagnant = "VOUS" if last_sum % 2 != 0 else "IA"
+
             dernier = (f"Dernier coup: IA={last_ia} ({'PAIR' if last_ia%2==0 else 'IMPAIR'}), "
                        f"Vous={last_hum} ({'PAIR' if last_hum%2==0 else 'IMPAIR'}) -> "
-                       f"Somme={last_sum} -> {'IA' if last_sum%2!=0 else 'VOUS'} gagne")
+                       f"Somme={last_sum} -> {gagnant} gagne")
         else:
             dernier = "Dernier coup: ---"
         cv2.putText(frame, dernier, (50, start_y), font, 0.55, self.white, 1)
